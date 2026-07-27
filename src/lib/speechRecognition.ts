@@ -10,7 +10,15 @@ interface SpeechRecognitionHandlers {
   onError(message: string): void
 }
 
+export function isIOS(): boolean {
+  return typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)
+}
+
 export function isSpeechRecognitionSupported(): boolean {
+  // Su iOS/Safari il costruttore esiste ma il riconoscimento vocale è inaffidabile
+  // (resta "in ascolto" senza mai produrre risultati): meglio indirizzare l'utente
+  // verso la dettatura nativa della tastiera di sistema, che lì funziona bene.
+  if (isIOS()) return false
   const w = window as unknown as Record<string, unknown>
   return typeof window !== 'undefined' && Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition)
 }

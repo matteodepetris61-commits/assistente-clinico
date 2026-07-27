@@ -3,7 +3,7 @@ import { usePensieriStore } from '../lib/store'
 import { classifyThought, getTheme } from '../lib/themes'
 import { ThoughtCard } from './ThoughtCard'
 import { useToast } from '../lib/toast'
-import { createSpeechRecognition, isSpeechRecognitionSupported } from '../lib/speechRecognition'
+import { createSpeechRecognition, isIOS, isSpeechRecognitionSupported } from '../lib/speechRecognition'
 
 export function CaptureView() {
   const [text, setText] = useState('')
@@ -108,6 +108,12 @@ export function CaptureView() {
         {listening && (
           <p className="dictation-hint">
             🔴 In ascolto… {interim && <span className="dictation-interim">{interim}</span>}
+          </p>
+        )}
+        {!speechSupported && isIOS() && (
+          <p className="dictation-hint">
+            💡 Su iPhone puoi dettare col microfono della tastiera di sistema: tocca dentro il
+            campo di testo, poi l'icona 🎤 sulla tastiera.
           </p>
         )}
         <div className="capture-actions">
