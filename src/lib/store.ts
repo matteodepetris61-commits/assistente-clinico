@@ -26,6 +26,7 @@ interface PensieriState {
   connect(): Promise<void>
   disconnect(): void
   addThought(text: string): Promise<void>
+  deleteThought(id: string): Promise<void>
   retrySync(): Promise<void>
 }
 
@@ -112,6 +113,34 @@ export const usePensieriStore = create<PensieriState>((set, get) => ({
       })
     } catch {
       await enqueue(thought)
+    }
+  },
+
+  async deleteThought(id: string) {
+    const previous = get().thoughts
+    set((state) => {
+      const nextPending = new Set(state.pendingIds)
+      nextPending.delete(id)
+      return {
+        thoughts: state.thoughts.filter((t) => t.id !== id),
+        pendingIds: nextPending,
+      }
+    })
+    await clearFromQueue([id])
+
+    if (get().status !== 'ready') return
+
+    try {
+      let folderId = get().folderId
+      if (!folderId) folderId = await ensureAppFolder()
+      const { fileId, data } = await readIndex(folderId)
+      data.thoughts = data.thoughts.filter((t) => t.id !== id)
+      const newFileId = await writeIndex(folderId, fileId, data)
+      set({ folderId, indexFileId: newFileId })
+    } catch (err) {
+      // ripristina il pensiero in caso di errore di sincronizzazione
+      set({ thoughts: previous })
+      throw err
     }
   },
 

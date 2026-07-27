@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import type { StoredThought } from '../lib/drive'
 import { getTheme } from '../lib/themes'
 import { useToast } from '../lib/toast'
+import { usePensieriStore } from '../lib/store'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('it-IT', { dateStyle: 'medium', timeStyle: 'short' })
@@ -16,6 +18,8 @@ export function ThoughtCard({
   showTheme?: boolean
 }) {
   const { showToast } = useToast()
+  const deleteThought = usePensieriStore((s) => s.deleteThought)
+  const [deleting, setDeleting] = useState(false)
   const theme = getTheme(thought.themeId)
 
   const copy = async () => {
@@ -24,6 +28,22 @@ export function ThoughtCard({
       showToast('Copiato negli appunti')
     } catch {
       showToast('Impossibile copiare automaticamente')
+    }
+  }
+
+  const remove = async () => {
+    const confirmed = window.confirm(
+      "Eliminare questo pensiero? Sparirà dall'app; il testo resterà comunque nel documento Google Docs se vuoi cancellarlo anche lì.",
+    )
+    if (!confirmed) return
+    setDeleting(true)
+    try {
+      await deleteThought(thought.id)
+      showToast('Pensiero eliminato')
+    } catch {
+      showToast('Impossibile eliminare, riprova')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -42,6 +62,9 @@ export function ThoughtCard({
       <div className="thought-actions">
         <button className="btn btn-ghost btn-sm" onClick={copy}>
           📋 Copia
+        </button>
+        <button className="btn btn-ghost btn-sm" onClick={remove} disabled={deleting}>
+          🗑️ {deleting ? 'Elimino…' : 'Elimina'}
         </button>
       </div>
     </div>
