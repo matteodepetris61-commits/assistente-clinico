@@ -2,8 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Deploy target: GitHub Pages at https://<owner>.github.io/assistente-clinico/
-const base = process.env.VITE_BASE_PATH ?? '/assistente-clinico/'
+// Deploy target: GitHub Pages at https://<owner>.github.io/i-miei-pensieri/
+const base = process.env.VITE_BASE_PATH ?? '/i-miei-pensieri/'
 
 export default defineConfig({
   base,
