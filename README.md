@@ -61,12 +61,12 @@ Per attivarlo (una tantum):
 2. Fai il merge di questo branch su `main` (o esegui manualmente il workflow da `Actions →
    Deploy su GitHub Pages → Run workflow`).
 3. Dopo il primo deploy l'app sarà raggiungibile su
-   `https://<tuo-utente-github>.github.io/assistente-clinico/`.
+   `https://<tuo-utente-github>.github.io/i-miei-pensieri/`.
 4. Apri quell'indirizzo da telefono e usa "Aggiungi a schermata Home" (Safari/Chrome) per
    installarla come app; da PC basta il browser.
 5. Vai in **Impostazioni** dentro l'app e incolla il Client ID Google (vedi sopra).
 
-Se pubblichi altrove o con un percorso diverso da `/assistente-clinico/`, imposta la variabile
+Se pubblichi altrove o con un percorso diverso da `/i-miei-pensieri/`, imposta la variabile
 d'ambiente `VITE_BASE_PATH` in fase di build (es. `VITE_BASE_PATH=/ npm run build` per servire dalla
 radice di un dominio).
 
