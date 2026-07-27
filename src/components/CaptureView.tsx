@@ -1,16 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePensieriStore } from '../lib/store'
 import { classifyThought, getTheme } from '../lib/themes'
 import { ThoughtCard } from './ThoughtCard'
 import { useToast } from '../lib/toast'
+import { createSpeechRecognition, isSpeechRecognitionSupported } from '../lib/speechRecognition'
 
 export function CaptureView() {
   const [text, setText] = useState('')
   const [saving, setSaving] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [interim, setInterim] = useState('')
+  const recognitionRef = useRef<ReturnType<typeof createSpeechRecognition>>(null)
   const thoughts = usePensieriStore((s) => s.thoughts)
   const pendingIds = usePensieriStore((s) => s.pendingIds)
   const addThought = usePensieriStore((s) => s.addThought)
   const { showToast } = useToast()
+
+  const speechSupported = isSpeechRecognitionSupported()
+
+  useEffect(() => {
+    return () => recognitionRef.current?.stop()
+  }, [])
 
   const preview = text.trim() ? getTheme(classifyThought(text)) : null
 
@@ -34,19 +44,72 @@ export function CaptureView() {
     }
   }
 
+  const toggleDictation = () => {
+    if (listening) {
+      recognitionRef.current?.stop()
+      return
+    }
+
+    const controller = createSpeechRecognition({
+      onInterim: (chunk) => setInterim(chunk),
+      onFinal: (chunk) => {
+        const clean = chunk.trim()
+        if (!clean) return
+        setText((prev) => (prev.trim() ? `${prev.trim()} ${clean}` : clean))
+        setInterim('')
+      },
+      onEnd: () => {
+        setListening(false)
+        setInterim('')
+      },
+      onError: (message) => {
+        setListening(false)
+        setInterim('')
+        showToast(message === 'not-allowed' ? 'Permesso microfono negato' : 'Errore microfono')
+      },
+    })
+
+    if (!controller) {
+      showToast('Dettatura vocale non supportata su questo browser')
+      return
+    }
+
+    recognitionRef.current = controller
+    controller.start()
+    setListening(true)
+  }
+
   return (
     <div>
       <h1 className="page-title">Cosa hai in mente?</h1>
 
       <div className="card capture-card">
-        <textarea
-          className="capture-textarea"
-          placeholder="Scrivi qui il tuo pensiero… viene salvato e classificato automaticamente per tema."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={onKeyDown}
-          autoFocus
-        />
+        <div className="capture-textarea-wrap">
+          <textarea
+            className="capture-textarea"
+            placeholder="Scrivi qui il tuo pensiero… viene salvato e classificato automaticamente per tema."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={onKeyDown}
+            autoFocus
+          />
+          {speechSupported && (
+            <button
+              type="button"
+              className={`mic-btn${listening ? ' mic-btn-active' : ''}`}
+              onClick={toggleDictation}
+              title={listening ? 'Ferma dettatura' : 'Detta a voce'}
+              aria-label={listening ? 'Ferma dettatura' : 'Detta a voce'}
+            >
+              🎙️
+            </button>
+          )}
+        </div>
+        {listening && (
+          <p className="dictation-hint">
+            🔴 In ascolto… {interim && <span className="dictation-interim">{interim}</span>}
+          </p>
+        )}
         <div className="capture-actions">
           {preview && (
             <span
