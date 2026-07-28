@@ -80,6 +80,17 @@ export function signOut(): void {
 }
 
 /**
+ * Avvia il caricamento dello script di Google Identity Services in anticipo, senza attenderlo.
+ * Da chiamare presto (es. all'avvio dell'app): su mobile, se il popup di login viene aperto
+ * anche con un minimo ritardo asincrono dopo il tocco dell'utente, il browser lo blocca
+ * ("Failed to open popup window"). Precaricando lo script, quando l'utente tocca "Connetti"
+ * risulta già pronto e il popup si apre in modo sincrono, nello stesso gesto dell'utente.
+ */
+export function preloadGoogleIdentity(): void {
+  void loadGisScript()
+}
+
+/**
  * Richiede un access token. Se manca un consenso valido mostra il popup di login Google
  * (necessario almeno una volta per dispositivo/browser, poi il token viene tenuto in cache).
  */
@@ -90,7 +101,11 @@ export async function requestAccessToken(): Promise<string> {
   const clientId = getClientId()
   if (!clientId) throw new Error('MISSING_CLIENT_ID')
 
-  await loadGisScript()
+  // Se lo script è già disponibile evitiamo qualunque await prima di aprire il popup,
+  // per non perdere il gesto dell'utente (vedi preloadGoogleIdentity).
+  if (!window.google?.accounts?.oauth2) {
+    await loadGisScript()
+  }
 
   return new Promise((resolve, reject) => {
     try {

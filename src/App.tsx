@@ -3,6 +3,7 @@ import './App.css'
 import { useHashRoute } from './lib/useHashRoute'
 import { usePensieriStore } from './lib/store'
 import { ToastProvider } from './lib/toast'
+import { preloadGoogleIdentity } from './lib/googleAuth'
 import { NavBar } from './components/NavBar'
 import { CaptureView } from './components/CaptureView'
 import { MindMap } from './components/MindMap'
@@ -38,6 +39,7 @@ function AppInner() {
   const status = usePensieriStore((s) => s.status)
 
   useEffect(() => {
+    preloadGoogleIdentity()
     void init()
   }, [init])
 
