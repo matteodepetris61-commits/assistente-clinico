@@ -230,6 +230,14 @@
   gap: 8px;
 }
 
+.search-bar {
+  margin-bottom: 16px;
+}
+
+.search-bar input {
+  font-size: 0.95rem;
+}
+
 .empty-state {
   text-align: center;
   padding: 40px 20px;
